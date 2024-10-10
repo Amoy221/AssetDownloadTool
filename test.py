@@ -2,28 +2,33 @@
 import tkinter as tk
 from tkinter import ttk
 
-def show_selected(event):
-    branch_name.set(branch_combobox.get())
-
-def print_branch_name():
-    print(branch_name.get())
+def update_options():
+    if var1.get() == 1:
+        branch_combobox['values'] = branch_options1
+    else:
+        branch_combobox['values'] = branch_options2
 
 # 创建窗口
 window = tk.Tk()
 
 # 定义下拉框的选项
-branch_options = ["Option 1", "Option 2", "Option 3"]
+branch_options1 = ["Option 1-1", "Option 1-2", "Option 1-3"]
+branch_options2 = ["Option 2-1", "Option 2-2", "Option 2-3"]
 
-# 定义 StringVar 来存储选择的分支名
-branch_name = tk.StringVar()
+# 创建Checkbutton组件
+var1 = tk.IntVar()
+checkbutton1 = tk.Checkbutton(window, text="Show List 1", variable=var1, command=update_options)
+checkbutton1.pack()
 
-# 创建 Combobox 组件
-branch_combobox = ttk.Combobox(window, values=branch_options, state="readonly", width=13)
-branch_combobox.place(x=300, y=20)
-branch_combobox.bind("<<ComboboxSelected>>", show_selected)
+var2 = tk.IntVar()
+checkbutton2 = tk.Checkbutton(window, text="Show List 2", variable=var2, command=update_options)
+checkbutton2.pack()
 
-# 创建按钮来打印 branch_name 的值
-print_button = tk.Button(window, text="Print branch_name", command=print_branch_name)
-print_button.place(x=300, y=50)
+# 创建Combobox组件
+branch_combobox = ttk.Combobox(window, state="readonly", width=13)
+branch_combobox.pack()
+
+# 初始化下拉框的选项
+branch_combobox['values'] = branch_options1
 
 window.mainloop()
