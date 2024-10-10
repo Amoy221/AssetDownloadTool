@@ -61,7 +61,7 @@ def show_branch_selected(event):
     global branch_url
     branch_url = Tgame_url+branch_combobox.get()
     print(branch_url)
-    # spider(branch_url)
+    
 
 # # 定义分支下拉框的选项
 # options = ["Option 1", "Option 2", "Option 3"]
@@ -70,12 +70,13 @@ branch_combobox = ttk.Combobox(window, values=branch_options, state="readonly", 
 branch_combobox.place(x=300,y=20)
 branch_combobox.bind("<<ComboboxSelected>>", show_branch_selected)
 branch_combobox.current(1) # 下拉框默认选中第2个值
-# version_url = Tgame_url+branch_combobox.get()
-# print(version_url)
+branch_url = Tgame_url+branch_combobox.get()
+print(branch_url)
 
 system = 'Android_ASTC/'
 # 安卓和iOS的checkbutton
 def print_selection(button_num):  # 也可以写成两个回调函数
+    global branch_url
     global version_options
     version_options = [] # 点击时把上一次的列表清空
     global system
@@ -87,7 +88,7 @@ def print_selection(button_num):  # 也可以写成两个回调函数
         if var1.get() == 1:  
             android_cb.deselect()
         system = 'IOS/'
-    print(branch_url+system)
+    # print(branch_url+system)
     # spider(branch_url+system+'packages/')
     version_url = branch_url+system+'packages/'
     # print(version_options)
@@ -100,17 +101,15 @@ android_cb = tk.Checkbutton(window,text='Android',variable=var1,onvalue=1,offval
 android_cb.place(x=170,y=20)
 ios_cb = tk.Checkbutton(window,text='IOS',variable=var2,onvalue=1,offvalue=0,command=lambda:print_selection(2))
 ios_cb.place(x=250,y=20)
+print(branch_url+android_cb.cget('text')+'_ASTC/packages/')
 
-# spider(version_url)
 
 # 选择版本的下拉框
 def show_version_selected(event):
     print(url_combobox.get())
-    # global branch_url
-    # branch_url = Tgame_url+branch_combobox.get()
-    # print(branch_url)
+    
 
-# spider(branch_url+system+'packages/')
+
 # 定义下拉框的选项
 # version_options = ["Option 1", "Option 2", "Option 3"]
 # 创建 Combobox 组件
