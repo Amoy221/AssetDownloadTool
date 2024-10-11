@@ -17,7 +17,6 @@ window.geometry('600x400') # 宽度x高度
 tk.Label(window,text='更新的url：').place(x=100,y=50)
 tk.Label(window,text='存放目录：').place(x=100,y=75)
 
-
 # 定义分支下拉框的选项
 branch_options = []
 version_options=[]
@@ -228,11 +227,20 @@ def download_file(url, directory):
                         for data in tqdm(response.iter_content(block_size), total=total_size // block_size, unit='KB', unit_scale=True):
                             file.write(data)
                 print(f'{file_name}文件已下载')
+                # 显示下载内容
+                print_text = file_name+'文件已下载'
+                text_widget.insert(tk.END, print_text)  # 将每一行内容插入到文本框中
+                text_widget.insert(tk.END, '\n')  # 在插入文本后添加换行符
+                text_widget.see(tk.END)  # 实时滚动文本框以显示最新内容
     
     print("All files downloaded successfully.")
 
 # 下载按钮
 download_button = tk.Button(window,text='下载',width=15,command=start_download)
 download_button.place(x=180,y=120)
+
+# 创建一个文本框
+text_widget = tk.Text(window,height=10, width=50)
+text_widget.place(x=100,y=170)
 
 window.mainloop()
