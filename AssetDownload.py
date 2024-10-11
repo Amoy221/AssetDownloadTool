@@ -143,12 +143,6 @@ browse_button.place(x=400,y=80)
 
 def get_download_link(version):
     # 根据选择的版本获取相应的下载链接
-    # download_links = {
-    #     "Option 1": "http://10.11.80.80:81/tgame/dev/Android_ASTC/packages/Game.Development.3258.apk",
-    #     "Option 2": "http://10.11.80.80:81/tgame/dev/Android_ASTC/packages/Game.Development.3266.apk",
-    #     "Option 3": "http://10.11.80.80:81/tgame/dev/Android_ASTC/packages/Game.Development.3267.apk"
-    # }
-
     download_links = "http://10.11.80.80:81/tgame/"+branch_combobox.get()+system+'packages/'+url_combobox.get()
     print(download_links)
     return download_links
@@ -173,7 +167,7 @@ def download_file(url, directory):
     # 从给定的 URL 下载文件并保存到指定目录，并显示下载进度
     file_name = url.split('/')[-1]
     file_path = os.path.join(directory, file_name)
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True)  # 请求安装包
     total_size = int(response.headers.get('content-length', 0))
     block_size = 1024
 
@@ -184,6 +178,58 @@ def download_file(url, directory):
  
     # progress_label.config(text="下载完成")
     print(f"File downloaded to: {file_path}")
+
+    # 下载资源
+    
+    version_number = re.findall(r'\d+', file_name)
+    print(version_number)
+    version_number = version_number[0]
+    
+    version_number = version_number+'.0'
+    # 资源的url
+    Resources_url = "http://10.11.80.80:81/tgame/"+branch_combobox.get()+system+'updates/'+version_number
+    assets_url = Resources_url+'/assets/'
+    manifest_json = Resources_url+'/manifest.json'
+
+    # 存放资源的文件夹
+    Resources_type_path = system+version_number
+    Resources_path = os.path.join(directory, Resources_type_path)
+    Resources_path = Resources_path.replace("\\", "/") # 将\反转/
+    if not os.path.exists(Resources_path):
+        os.makedirs(Resources_path)
+    print(f"directory:{directory},Resources_path:{Resources_path}") 
+
+    response_manifest = requests.get(manifest_json)
+    if response_manifest.status_code  == 200:
+        data_dict = response_manifest.json()
+        paks_list = data_dict['paks']
+    else:
+        print('Failed to retrieve data:', response_manifest.status_code)
+
+    response_assets = requests.get(assets_url)
+    download_link_list = []
+    if response_assets.status_code == 200:
+        soup = BeautifulSoup(response_assets.content, 'html.parser')
+        download_links = soup.find_all('a')
+        for link in download_links:
+            download_link = link.get('href')
+            download_link_list.append(download_link)
+
+    for download_link in download_link_list[1:]:
+        for paks_dict in paks_list:
+            if download_link == paks_dict['hash']:
+                print(download_link, paks_dict['name'])
+                file_name = paks_dict['name']
+                download_dir = os.path.join(Resources_path, file_name)
+                with requests.get(assets_url + download_link, stream=True) as response:
+                    total_size = int(response.headers.get('content-length', 0))
+                    block_size = 1024
+                    with open(download_dir, 'wb') as file:
+                        for data in tqdm(response.iter_content(block_size), total=total_size // block_size, unit='KB', unit_scale=True):
+                            file.write(data)
+                print(f'{file_name}文件已下载')
+    
+    print("All files downloaded successfully.")
 
 # 下载按钮
 download_button = tk.Button(window,text='下载',width=15,command=start_download)
