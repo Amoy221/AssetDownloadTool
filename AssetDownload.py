@@ -148,6 +148,9 @@ def get_download_link(version):
 
 # 下载按钮触发的函数
 def start_download():
+    # 设置下载标志的初始值
+    global Download_flag
+    Download_flag = True
     selected_version = url_combobox.get() # 获取版本下拉框的参数
     download_link = get_download_link(selected_version)
     if download_link:
@@ -225,6 +228,10 @@ def download_file(url, directory):
                     block_size = 1024
                     with open(download_dir, 'wb') as file:
                         for data in tqdm(response.iter_content(block_size), total=total_size // block_size, unit='KB', unit_scale=True):
+                            if cancelDownload_flag:  # 如果取消标志为真，则停止下载
+                                print("Download canceled.")
+                                text_widget.insert(tk.END, "已取消所有下载....")
+                                return
                             file.write(data)
                 print(f'{file_name}文件已下载')
                 # 显示下载内容
@@ -234,7 +241,10 @@ def download_file(url, directory):
                 text_widget.see(tk.END)  # 实时滚动文本框以显示最新内容
     
     print("All files downloaded successfully.")
+    text_widget.insert(tk.END, "所有文件下载完成！！！")
 
+# 设置下载标志的初始值
+Download_flag = False
 # 下载按钮
 download_button = tk.Button(window,text='下载',width=15,command=start_download)
 download_button.place(x=180,y=120)
@@ -242,5 +252,17 @@ download_button.place(x=180,y=120)
 # 创建一个文本框
 text_widget = tk.Text(window,height=10, width=50)
 text_widget.place(x=100,y=170)
+
+def cancel_download():
+    global cancelDownload_flag
+    if Download_flag:
+        cancelDownload_flag = True
+
+# 设置取消标志的初始值
+cancelDownload_flag = False
+ 
+# 创建一个取消下载的按钮
+cancel_button = tk.Button(window, text="Cancel Download", command=cancel_download)
+cancel_button.place(x=300,y=120)
 
 window.mainloop()
