@@ -6,7 +6,9 @@ from  bs4 import BeautifulSoup
 from lxml import html
 import re
 from tkinter import filedialog
-
+import threading
+import os
+from tqdm import tqdm
 
 window = tk.Tk()
 window.title('CBJQAssetDownload')
@@ -139,10 +141,52 @@ directory_entry.place(x=170,y=80)
 browse_button = tk.Button(window,text='Browse',command=browse_dirctory)
 browse_button.place(x=400,y=80)
 
-def download_file():
-    pass
+def get_download_link(version):
+    # 根据选择的版本获取相应的下载链接
+    # download_links = {
+    #     "Option 1": "http://10.11.80.80:81/tgame/dev/Android_ASTC/packages/Game.Development.3258.apk",
+    #     "Option 2": "http://10.11.80.80:81/tgame/dev/Android_ASTC/packages/Game.Development.3266.apk",
+    #     "Option 3": "http://10.11.80.80:81/tgame/dev/Android_ASTC/packages/Game.Development.3267.apk"
+    # }
 
-download_button = tk.Button(window,text='下载',width=15,command=download_file)
+    download_links = "http://10.11.80.80:81/tgame/"+branch_combobox.get()+system+'packages/'+url_combobox.get()
+    print(download_links)
+    return download_links
+
+# 下载按钮触发的函数
+def start_download():
+    selected_version = url_combobox.get() # 获取版本下拉框的参数
+    download_link = get_download_link(selected_version)
+    if download_link:
+        # 启动下载线程，避免主线程被阻塞，导致窗口无响应
+        download_thread = threading.Thread(target=download_file, args=(download_link, directory_entry.get()))
+        download_thread.start()
+
+def download_file(url, directory):
+    # 如果指定的文件夹不存在，则创建
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"The directory {directory} has been created.")
+    else:
+        print(f"The directory {directory} already exists.")
+
+    # 从给定的 URL 下载文件并保存到指定目录，并显示下载进度
+    file_name = url.split('/')[-1]
+    file_path = os.path.join(directory, file_name)
+    response = requests.get(url, stream=True)
+    total_size = int(response.headers.get('content-length', 0))
+    block_size = 1024
+
+    # 使用 tqdm 显示下载进度
+    with open(file_path, 'wb') as file:
+        for data in tqdm(response.iter_content(block_size), total=total_size//block_size, unit='KB', unit_scale=True):
+            file.write(data)
+ 
+    # progress_label.config(text="下载完成")
+    print(f"File downloaded to: {file_path}")
+
+# 下载按钮
+download_button = tk.Button(window,text='下载',width=15,command=start_download)
 download_button.place(x=180,y=120)
 
 window.mainloop()
