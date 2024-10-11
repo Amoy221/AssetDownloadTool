@@ -5,21 +5,16 @@ import requests
 from  bs4 import BeautifulSoup
 from lxml import html
 import re
-
+from tkinter import filedialog
 
 
 window = tk.Tk()
 window.title('CBJQAssetDownload')
 window.geometry('600x400') # 宽度x高度
 
-
-
 tk.Label(window,text='更新的url：').place(x=100,y=50)
 tk.Label(window,text='存放目录：').place(x=100,y=75)
 
-# var_url = tk.StringVar()
-# var_url.set('输入更新url')
-# entry_usr_name = tk.Entry(window,textvariable=var_url).place(x=180,y=50)
 
 # 定义分支下拉框的选项
 branch_options = []
@@ -50,7 +45,9 @@ def spider(url):
             # if match:
             #     date_and_time = match.group(0)
             #     print(branch_element,date_and_time)
-
+        print('1')
+        print(f'branch_options:{branch_options}')
+        print(f'version_options:{version_options}')
     return url
 
 Tgame_url = spider('http://10.11.80.80:81/tgame/')
@@ -61,7 +58,16 @@ def show_branch_selected(event):
     global branch_url
     branch_url = Tgame_url+branch_combobox.get()
     print(branch_url)
-    
+    global version_options
+    version_options=[] # 再次选中分支时会先清空
+    if var1.get() == 1:
+        print("android_cb")
+        
+        spider(branch_url+'Android_ASTC/'+'packages/')
+    elif var2.get() == 1:
+        print("ios_cb")
+        spider(branch_url+'IOS/'+'packages/')
+    url_combobox['values'] = version_options   # 更新版本下拉框显示 
 
 # # 定义分支下拉框的选项
 # options = ["Option 1", "Option 2", "Option 3"]
@@ -91,8 +97,9 @@ def print_selection(button_num):  # 也可以写成两个回调函数
     # print(branch_url+system)
     # spider(branch_url+system+'packages/')
     version_url = branch_url+system+'packages/'
-    # print(version_options)
     print(version_url)
+    spider(version_url)
+    url_combobox['values'] = version_options   # 更新版本下拉框显示 
 
         
 var1 = tk.IntVar(value=1) # 默认选中
@@ -101,15 +108,15 @@ android_cb = tk.Checkbutton(window,text='Android',variable=var1,onvalue=1,offval
 android_cb.place(x=170,y=20)
 ios_cb = tk.Checkbutton(window,text='IOS',variable=var2,onvalue=1,offvalue=0,command=lambda:print_selection(2))
 ios_cb.place(x=250,y=20)
-print(branch_url+android_cb.cget('text')+'_ASTC/packages/')
 
+default_version_url = branch_url+android_cb.cget('text')+'_ASTC/packages/'
+print(default_version_url)
+spider(default_version_url)
 
 # 选择版本的下拉框
 def show_version_selected(event):
     print(url_combobox.get())
     
-
-
 # 定义下拉框的选项
 # version_options = ["Option 1", "Option 2", "Option 3"]
 # 创建 Combobox 组件
@@ -117,5 +124,25 @@ url_combobox = ttk.Combobox(window, values=version_options, state="readonly", wi
 url_combobox.place(x=170,y=50)
 url_combobox.bind("<<ComboboxSelected>>", show_version_selected)
 
+# 设置存放的目录和文件浏览目录按钮
+def browse_dirctory():
+    directory_path = filedialog.askdirectory(initialdir="/") # 初始化路径
+    if directory_path:
+        entry_var.set(directory_path)
+
+# 创建Entry组件用于显示和输入目录路径
+entry_var = tk.StringVar()
+directory_entry = tk.Entry(window,textvariable=entry_var,width=32)
+directory_entry.place(x=170,y=80)
+
+# 创建按钮来触发文件浏览目录
+browse_button = tk.Button(window,text='Browse',command=browse_dirctory)
+browse_button.place(x=400,y=80)
+
+def download_file():
+    pass
+
+download_button = tk.Button(window,text='下载',width=15,command=download_file)
+download_button.place(x=180,y=120)
 
 window.mainloop()
