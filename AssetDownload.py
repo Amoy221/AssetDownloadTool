@@ -9,6 +9,8 @@ from tkinter import filedialog
 import threading
 import os
 from tqdm import tqdm
+import subprocess
+from tkinter import messagebox
 
 window = tk.Tk()
 window.title('CBJQAssetDownload')
@@ -148,15 +150,29 @@ def get_download_link(version):
 
 # 下载按钮触发的函数
 def start_download():
+
+    # 解决url和目录输入框为空还能下载的情况
+    if not url_combobox.get():
+        tk.messagebox.showwarning(title='Warning',message='请选择要下载的版本')
+        return
+    if not directory_entry.get():
+        tk.messagebox.showwarning(title='Warning',message='请先输入存放的路径')
+
+
     # 设置下载标志的初始值
     global Download_flag
     Download_flag = True
+    global cancelDownload_flag
+    cancelDownload_flag = False
+ 
     selected_version = url_combobox.get() # 获取版本下拉框的参数
     download_link = get_download_link(selected_version)
+    text_widget.configure(state='normal') # 设置文本框为可编辑状态
     if download_link:
         # 启动下载线程，避免主线程被阻塞，导致窗口无响应
         download_thread = threading.Thread(target=download_file, args=(download_link, directory_entry.get()))
         download_thread.start()
+    
 
 def download_file(url, directory):
     # 如果指定的文件夹不存在，则创建
@@ -172,7 +188,11 @@ def download_file(url, directory):
     response = requests.get(url, stream=True)  # 请求安装包
     total_size = int(response.headers.get('content-length', 0))
     block_size = 1024
+    
+    text_widget.insert(tk.END, '版本安装包正在下载中.....')  # 将每一行内容插入到文本框中
+    text_widget.insert(tk.END, '\n')  # 在插入文本后添加换行符
 
+    # 下载安装包
     # 使用 tqdm 显示下载进度
     with open(file_path, 'wb') as file:
         for data in tqdm(response.iter_content(block_size), total=total_size//block_size, unit='KB', unit_scale=True):
@@ -180,6 +200,9 @@ def download_file(url, directory):
  
     # progress_label.config(text="下载完成")
     print(f"File downloaded to: {file_path}")
+    print_text = url_combobox.get()+'版本安装包已下载！！！'
+    text_widget.insert(tk.END, print_text)  # 将每一行内容插入到文本框中
+    text_widget.insert(tk.END, '\n')
 
     # 下载资源
     
@@ -250,7 +273,7 @@ download_button = tk.Button(window,text='下载',width=15,command=start_download)
 download_button.place(x=180,y=120)
 
 # 创建一个文本框
-text_widget = tk.Text(window,height=10, width=50)
+text_widget = tk.Text(window,state='disabled',height=10, width=50) # 设置文本框禁止编辑
 text_widget.place(x=100,y=170)
 
 def cancel_download():
@@ -264,5 +287,19 @@ cancelDownload_flag = False
 # 创建一个取消下载的按钮
 cancel_button = tk.Button(window, text="Cancel Download", command=cancel_download)
 cancel_button.place(x=300,y=120)
+
+def open_file_explorer():
+    path = directory_entry.get()
+    
+    if not path:
+        print('请先输入存放的路径！')
+        tk.messagebox.showwarning(title='Warning',message='请先输入存放的路径！')
+    else:
+        os.startfile(path) # 打开指定的文件夹
+
+# 添加一个按钮来触发打开文件资源管理器操作
+open_explorer_button = tk.Button(window, text="Open File Explorer", command=open_file_explorer)
+open_explorer_button.place(x=470,y=170)
+
 
 window.mainloop()
